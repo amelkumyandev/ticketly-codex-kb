@@ -1,0 +1,207 @@
+TICKETLY KNOWLEDGE-BASE CODEX TASKS
+====================================
+
+Repository: ticketly-kb
+Experiment type: WITH knowledge base.
+
+Goal: implement the exact same small Ticketly project as the plain repository, but use the knowledge-base artifacts in this repo.
+
+Important: before coding, read AGENTS.md and all files under /docs.
+
+Required stack:
+- .NET 10
+- ASP.NET Core Web API
+- PostgreSQL
+- Entity Framework Core
+- Docker Compose
+- xUnit
+- Test coverage
+- SonarQube local analysis
+- Windows PowerShell scripts
+- Token-burn tracking
+
+Application scope:
+- Create event
+- List events
+- Get event by id
+- Create ticket type for event
+- List ticket types for event
+- Reserve tickets
+- Get reservation by id
+
+Out of scope:
+- Frontend
+- Authentication
+- Authorization
+- Payments
+- Emails
+- Background jobs
+- Reservation confirmation
+- Reservation cancellation
+- Expiration logic
+
+MANDATORY TOKEN-BURN TRACKING
+-----------------------------
+
+You must update TOKEN_BURN.md, EXPERIMENT_LOG.md, and EXPERIMENT_RESULT.md when appropriate.
+
+If exact token usage is available, record exact usage. If exact token usage is not available, use scripts/estimate-token-burn.ps1.
+
+Label the method clearly as exact platform usage or estimated local usage. Do not skip token tracking.
+
+TASK 0 - Initialize solution using knowledge base
+-------------------------------------------------
+
+Read AGENTS.md, docs/architecture.md, docs/coding-standards.md, and docs/token-burn-tracking.md.
+
+Create a .NET 10 solution named Ticketly. Create the minimum clean solution structure for this project.
+
+Required:
+- ASP.NET Core Web API
+- xUnit test project
+- Dockerfile
+- docker-compose.yml with PostgreSQL
+- README.md
+- health endpoint: GET /health
+
+Run:
+- dotnet build
+
+Update:
+- EXPERIMENT_LOG.md
+- TOKEN_BURN.md
+
+Stop after this task.
+
+TASK 1 - Implement Ticketly API
+-------------------------------
+
+Read AGENTS.md, docs/architecture.md, docs/api-guidelines.md, and docs/security-standards.md.
+
+Implement the Ticketly API.
+
+Entities:
+
+Event:
+- Id
+- Name
+- Venue
+- StartsAt
+- CreatedAt
+
+TicketType:
+- Id
+- EventId
+- Name
+- Price
+- Currency
+- TotalQuantity
+- AvailableQuantity
+- CreatedAt
+
+Reservation:
+- Id
+- TicketTypeId
+- Quantity
+- CustomerEmail
+- CreatedAt
+
+Endpoints:
+
+GET /health
+POST /api/events
+GET /api/events
+GET /api/events/{id}
+POST /api/events/{eventId}/ticket-types
+GET /api/events/{eventId}/ticket-types
+POST /api/reservations
+GET /api/reservations/{id}
+
+Business rules:
+- Event name is required.
+- Event venue is required.
+- Ticket type belongs to an event.
+- Ticket type name is required.
+- Ticket type price cannot be negative.
+- Ticket type currency is required.
+- Ticket type TotalQuantity must be greater than zero.
+- Ticket type AvailableQuantity initially equals TotalQuantity.
+- Reservation quantity must be greater than zero.
+- Reservation requires CustomerEmail.
+- Reservation fails if not enough tickets are available.
+- Reservation reduces AvailableQuantity.
+
+Use PostgreSQL through EF Core. Add migration support.
+
+Run:
+- dotnet build
+- dotnet test
+
+Update EXPERIMENT_LOG.md and TOKEN_BURN.md. Stop after this task.
+
+TASK 2 - Add tests and coverage
+-------------------------------
+
+Read AGENTS.md, docs/qa-standards.md, and docs/token-burn-tracking.md.
+
+Add automated tests for:
+- Create event succeeds with valid data.
+- Create ticket type succeeds for an existing event.
+- Ticket type AvailableQuantity initially equals TotalQuantity.
+- Reservation succeeds when enough tickets are available.
+- Reservation reduces AvailableQuantity.
+- Reservation fails when not enough tickets are available.
+- Reservation fails when quantity is zero or negative.
+
+Add coverage tooling and scripts/run-tests-with-coverage.ps1. The coverage output should be documented and usable by SonarQube.
+
+Run:
+- dotnet build
+- dotnet test
+- .\scriptsun-tests-with-coverage.ps1
+
+Update EXPERIMENT_LOG.md and TOKEN_BURN.md. Stop after this task.
+
+TASK 3 - Add SonarQube local analysis
+-------------------------------------
+
+Read AGENTS.md, docs/sonarqube-standards.md, and docs/security-standards.md.
+
+Add local SonarQube support.
+
+Required:
+- docker-compose.sonarqube.yml
+- scripts/run-sonarqube-analysis.ps1
+- README instructions
+
+Use sonarqube:lts-community and postgres:17 for SonarQube DB.
+
+The script must support Windows PowerShell.
+
+Run:
+- dotnet build
+- dotnet test
+
+If local SonarQube cannot be executed in this environment, document the reason and provide exact commands for the user.
+
+Update EXPERIMENT_LOG.md and TOKEN_BURN.md. Stop after this task.
+
+TASK 4 - Final review and comparison summary
+--------------------------------------------
+
+Read AGENTS.md and all docs under /docs.
+
+Create or update EXPERIMENT_RESULT.md.
+
+Run:
+- dotnet build
+- dotnet test
+- .\scripts\estimate-token-burn.ps1
+
+If coverage script exists, run .\scriptsun-tests-with-coverage.ps1.
+
+If SonarQube token is available, run .\scriptsun-sonarqube-analysis.ps1 -Token "<token>".
+
+Update EXPERIMENT_RESULT.md with build result, test result, coverage result, SonarQube result if available, token-burn result, manual fixes, assumptions, known limitations, and comparison table placeholders for ticketly-plain.
+
+Stop after this task.

@@ -1,0 +1,60 @@
+@Ticketly.Api_HostAddress = http://localhost:5089
+
+GET {{Ticketly.Api_HostAddress}}/health
+Accept: application/json
+
+###
+
+POST {{Ticketly.Api_HostAddress}}/api/events
+Content-Type: application/json
+
+{
+  "name": "DotNet Community Day",
+  "venue": "Yerevan Tech Hub",
+  "startsAt": "2026-06-01T10:00:00Z"
+}
+
+###
+
+GET {{Ticketly.Api_HostAddress}}/api/events
+Accept: application/json
+
+###
+
+GET {{Ticketly.Api_HostAddress}}/api/events/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
+
+POST {{Ticketly.Api_HostAddress}}/api/events/00000000-0000-0000-0000-000000000000/ticket-types
+Content-Type: application/json
+
+{
+  "name": "General Admission",
+  "price": 25.00,
+  "currency": "USD",
+  "totalQuantity": 100
+}
+
+###
+
+GET {{Ticketly.Api_HostAddress}}/api/events/00000000-0000-0000-0000-000000000000/ticket-types
+Accept: application/json
+
+###
+
+POST {{Ticketly.Api_HostAddress}}/api/reservations
+Content-Type: application/json
+
+{
+  "ticketTypeId": "00000000-0000-0000-0000-000000000000",
+  "quantity": 2,
+  "customerEmail": "customer@example.com"
+}
+
+###
+
+GET {{Ticketly.Api_HostAddress}}/api/reservations/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+###
