@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Ticketly.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Ticketly.Infrastructure.Persistence;
 namespace Ticketly.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TicketlyDbContext))]
-    partial class TicketlyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512071536_AddAuthenticationUsers")]
+    partial class AddAuthenticationUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

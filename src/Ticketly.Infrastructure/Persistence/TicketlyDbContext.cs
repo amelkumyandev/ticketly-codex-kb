@@ -11,6 +11,8 @@ public sealed class TicketlyDbContext(DbContextOptions<TicketlyDbContext> option
 
     public DbSet<Reservation> Reservations => Set<Reservation>();
 
+    public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Event>(entity =>
@@ -62,6 +64,20 @@ public sealed class TicketlyDbContext(DbContextOptions<TicketlyDbContext> option
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(reservation => reservation.TicketTypeId);
+        });
+
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.ToTable("users");
+            entity.HasKey(user => user.Id);
+
+            entity.Property(user => user.Id).ValueGeneratedNever();
+            entity.Property(user => user.Email).HasMaxLength(320).IsRequired();
+            entity.Property(user => user.PasswordHash).HasMaxLength(500).IsRequired();
+            entity.Property(user => user.Role).HasMaxLength(50).IsRequired();
+            entity.Property(user => user.CreatedAt).IsRequired();
+
+            entity.HasIndex(user => user.Email).IsUnique();
         });
     }
 }

@@ -1,6 +1,7 @@
 param(
     [string]$Path = "TOKEN_BURN.md",
-    [int]$Task = 0
+    [int]$Task = 0,
+    [switch]$AuthAddon
 )
 
 if (-not (Test-Path $Path)) {
@@ -27,13 +28,17 @@ function Get-SectionContent {
     return $result
 }
 
-if ($Task -gt 0) {
+if ($AuthAddon) {
+    $inputPattern = '(?s)## Auth Add-on Task Input\s*(.*?)(?=## Auth Add-on Task Output Summary|\z)'
+    $outputPattern = '(?s)## Auth Add-on Task Output Summary\s*(.*?)(?=## [^\r\n]+|\z)'
+}
+elseif ($Task -gt 0) {
     $inputPattern = "(?s)## Task $Task Input\s*(.*?)(?=## Task $Task Output Summary|\z)"
     $outputPattern = "(?s)## Task $Task Output Summary\s*(.*?)(?=## Task \d+ Input|\z)"
 }
 else {
-    $inputPattern = '(?s)## Task \d+ Input\s*(.*?)(?=## Task \d+ Output Summary|\z)'
-    $outputPattern = '(?s)## Task \d+ Output Summary\s*(.*?)(?=## Task \d+ Input|\z)'
+    $inputPattern = '(?s)## (?:Task \d+|Auth Add-on Task) Input\s*(.*?)(?=## (?:Task \d+|Auth Add-on Task) Output Summary|\z)'
+    $outputPattern = '(?s)## (?:Task \d+|Auth Add-on Task) Output Summary\s*(.*?)(?=## (?:Task \d+|Auth Add-on Task) Input|\z)'
 }
 
 $inputText = Get-SectionContent -Text $content -SectionPattern $inputPattern
@@ -51,7 +56,7 @@ Write-Host "Token-burn estimate"
 Write-Host "==================="
 Write-Host "Method: estimated local usage"
 Write-Host "Formula: estimated tokens = characters / 4"
-Write-Host "Scope: $(if ($Task -gt 0) { "Task $Task" } else { "All task sections" })"
+Write-Host "Scope: $(if ($AuthAddon) { "Auth Add-on Task" } elseif ($Task -gt 0) { "Task $Task" } else { "All task sections" })"
 Write-Host ""
 Write-Host "Input characters:  $inputChars"
 Write-Host "Output characters: $outputChars"

@@ -71,6 +71,23 @@ public sealed class TicketlyRepository(TicketlyDbContext dbContext) : ITicketlyR
             .FirstOrDefaultAsync(reservation => reservation.Id == id, cancellationToken);
     }
 
+    public async Task AddUserAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        await dbContext.Users.AddAsync(user, cancellationToken);
+    }
+
+    public async Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken)
+    {
+        return await dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(user => user.Email == email, cancellationToken);
+    }
+
+    public async Task<bool> UserEmailExistsAsync(string email, CancellationToken cancellationToken)
+    {
+        return await dbContext.Users.AnyAsync(user => user.Email == email, cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await dbContext.SaveChangesAsync(cancellationToken);

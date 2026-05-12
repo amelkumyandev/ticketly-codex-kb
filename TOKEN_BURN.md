@@ -22,6 +22,7 @@ This is not billing-accurate, but it is consistent and repeatable for comparing 
 | 2 | estimated local usage | 261 | 386 | 647 | Estimated with `scripts/estimate-token-burn.ps1 -Task 2`; exact platform usage unavailable |
 | 3 | estimated local usage | 265 | 390 | 655 | Estimated with `scripts/estimate-token-burn.ps1 -Task 3`; exact platform usage unavailable |
 | 4 | estimated local usage | 228 | 421 | 649 | Estimated with `scripts/estimate-token-burn.ps1 -Task 4`; exact platform usage unavailable |
+| Auth Add-on | estimated local usage | 734 | 716 | 1450 | Estimated with `scripts/estimate-token-burn.ps1 -AuthAddon`; exact platform usage unavailable |
 
 ## Task 0 Input
 
@@ -428,3 +429,134 @@ Final verification:
 - Coverage report: `TestResults/coverage.opencover.xml`.
 - SonarQube: setup available, analysis not run because no token was available.
 - `powershell -ExecutionPolicy Bypass -File .\scripts\estimate-token-burn.ps1 -Task 4` - estimated 228 input tokens, 421 output tokens, 649 total tokens.
+
+## Auth Add-on Task Input
+
+User request:
+
+```text
+Read TICKETLY_KB_AUTH_ADDON_TASK.txt.
+
+Before coding, read AGENTS.md and all docs under /docs.
+Implement the auth add-on task using the knowledge base.
+Update TOKEN_BURN.md, EXPERIMENT_LOG.md, and EXPERIMENT_RESULT.md.
+Run build, tests, coverage if available, and token-burn estimation.
+Stop after this task.
+```
+
+Full task prompt:
+
+```text
+TICKETLY KNOWLEDGE-BASE AUTH ADD-ON TASK
+========================================
+
+Repository:
+ticketly-kb
+
+Experiment type:
+WITH knowledge base.
+
+Goal:
+Add JWT authentication and authorization to the existing Ticketly API while following the repository knowledge base and continuing token-burn tracking.
+
+Before coding, read:
+- AGENTS.md
+- docs/architecture.md
+- docs/coding-standards.md
+- docs/api-guidelines.md
+- docs/qa-standards.md
+- docs/security-standards.md
+- docs/sonarqube-standards.md
+- docs/token-burn-tracking.md
+- docs/comparison-summary.md
+
+MANDATORY TOKEN-BURN TRACKING
+-----------------------------
+
+Before starting this task:
+- Update TOKEN_BURN.md with the full task prompt under a new section named "Auth Add-on Task Input".
+- Update EXPERIMENT_LOG.md with start time and task name.
+
+After completing this task:
+- Update TOKEN_BURN.md with output summary under "Auth Add-on Task Output Summary".
+- If exact platform token usage is available, record exact input/output/total tokens.
+- If exact platform token usage is not available, run scripts/estimate-token-burn.ps1 and record estimated token usage.
+- Clearly mark the method as:
+  - exact platform usage
+  or
+  - estimated local usage
+
+Do not skip token tracking.
+
+AUTH ADD-ON TASK - Add JWT authentication and authorization using the knowledge base
+-----------------------------------------------------------------------------------
+
+Add authentication and authorization to the existing Ticketly API.
+
+Requirements:
+
+1. Add user model and persistence with Id, Email, PasswordHash, Role, CreatedAt. Supported roles: Admin, Customer.
+2. Add POST /api/auth/register and POST /api/auth/login. Hash passwords, return JWT on login, fail duplicate registration, return 401 for invalid login.
+3. Add JWT bearer authentication. JWT includes user id, email, role. Read Jwt__Issuer, Jwt__Audience, Jwt__SigningKey, Jwt__ExpiresMinutes from configuration.
+4. Protect endpoints: public health/auth/read endpoints, Admin-only event/ticket type creates, Customer or Admin reservations.
+5. Add tests for register/login and authorization rules.
+6. Run coverage and update notes.
+7. Update README with JWT configuration and example flows.
+8. Keep SonarQube support working.
+
+Run:
+- dotnet build
+- dotnet test
+- scripts/estimate-token-burn.ps1
+
+If coverage script exists, run:
+- scripts/run-tests-with-coverage.ps1
+
+If SonarQube token is available, run:
+- scripts/run-sonarqube-analysis.ps1 -Token "<token>"
+
+Update README.md, TOKEN_BURN.md, EXPERIMENT_LOG.md, and EXPERIMENT_RESULT.md.
+Stop after this task.
+```
+
+## Auth Add-on Task Output Summary
+
+Implemented JWT authentication and role-based authorization add-on:
+
+- Added `ApplicationUser` entity and `UserRoles` constants.
+- Added user persistence to `TicketlyDbContext`, repository methods, unique email index, and EF Core migration `AddAuthenticationUsers`.
+- Added auth application service with register/login workflows.
+- Added password hashing through ASP.NET Core Identity `PasswordHasher`.
+- Added JWT access token generation with user id, email, and role claims.
+- Added `POST /api/auth/register` and `POST /api/auth/login`.
+- Added JWT bearer authentication and role-based authorization policies.
+- Protected existing endpoints according to the add-on task: Admin-only create event/ticket type, Customer-or-Admin reservations, public health/auth/read endpoints.
+- Added 9 auth/authorization tests, raising total tests from 8 to 17.
+- Updated README with JWT configuration, register/login examples, Bearer token usage, Admin flow, Customer flow, and demo security limitations.
+- Updated Docker Compose with JWT environment variables.
+- Updated REST scratch file with auth examples.
+- Updated token estimator to support `Auth Add-on Task Input` and `Auth Add-on Task Output Summary` sections.
+
+Commands run:
+
+- `dotnet add src\Ticketly.Api\Ticketly.Api.csproj package Microsoft.AspNetCore.Authentication.JwtBearer --version 10.0.2`
+- `dotnet add src\Ticketly.Infrastructure\Ticketly.Infrastructure.csproj package Microsoft.Extensions.Identity.Core --version 10.0.2`
+- `dotnet add src\Ticketly.Infrastructure\Ticketly.Infrastructure.csproj package System.IdentityModel.Tokens.Jwt --version 8.14.0`
+- `dotnet add tests\Ticketly.Tests\Ticketly.Tests.csproj package Microsoft.AspNetCore.Mvc.Testing --version 10.0.2`
+- `dotnet tool run dotnet-ef migrations add AddAuthenticationUsers --project src\Ticketly.Infrastructure\Ticketly.Infrastructure.csproj --startup-project src\Ticketly.Api\Ticketly.Api.csproj --output-dir Persistence\Migrations`
+- `dotnet format` - completed.
+- `dotnet build` - passed with 0 warnings and 0 errors.
+- `dotnet test` - passed with 17 tests.
+- `.\scripts\run-tests-with-coverage.ps1` - blocked by local PowerShell execution policy.
+- `powershell -ExecutionPolicy Bypass -File .\scripts\run-tests-with-coverage.ps1` - passed and generated `TestResults\coverage.opencover.xml`.
+- `.\scripts\estimate-token-burn.ps1` - blocked by local PowerShell execution policy.
+- `powershell -ExecutionPolicy Bypass -File .\scripts\estimate-token-burn.ps1 -AuthAddon` - estimated 734 input tokens, 716 output tokens, 1450 total tokens.
+
+Verification:
+
+- Build: passed.
+- Tests: passed, 17 tests.
+- Auth tests count: 9.
+- Coverage: 36.47% line coverage.
+- Coverage report: `TestResults/coverage.opencover.xml`.
+- SonarQube: setup preserved; analysis not run because no `SONAR_TOKEN` or `SONARQUBE_TOKEN` environment variable was available.

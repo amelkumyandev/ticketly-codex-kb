@@ -6,7 +6,7 @@ This repository is part of the `ticketly-kb` experiment and follows the knowledg
 
 ## Current Scope
 
-Task 3 implements the Ticketly API, tests, coverage, and local SonarQube support:
+The current implementation includes the Ticketly API, JWT auth, tests, coverage, and local SonarQube support:
 
 - .NET 10 solution named `Ticketly`
 - ASP.NET Core Web API project
@@ -19,6 +19,8 @@ Task 3 implements the Ticketly API, tests, coverage, and local SonarQube support
 - EF Core migration support
 - Event, ticket type, and reservation endpoints
 - Business behavior tests for creation and reservation rules
+- JWT register/login endpoints
+- Role-based authorization for Admin and Customer users
 - OpenCover test coverage output
 - Local SonarQube Docker Compose support
 
@@ -41,6 +43,10 @@ tests/
 dotnet build
 dotnet test
 $env:ConnectionStrings__DefaultConnection = "Host=localhost;Port=5432;Database=ticketly;Username=ticketly;Password=ticketly"
+$env:Jwt__Issuer = "ticketly-local"
+$env:Jwt__Audience = "ticketly-api"
+$env:Jwt__SigningKey = "local-demo-signing-key-change-for-real-use-32"
+$env:Jwt__ExpiresMinutes = "60"
 dotnet run --project .\src\Ticketly.Api\Ticketly.Api.csproj
 ```
 
@@ -188,6 +194,8 @@ docker compose -f docker-compose.sonarqube.yml down
 
 ```text
 GET  /health
+POST /api/auth/register
+POST /api/auth/login
 POST /api/events
 GET  /api/events
 GET  /api/events/{id}
@@ -197,10 +205,145 @@ POST /api/reservations
 GET  /api/reservations/{id}
 ```
 
+Public endpoints:
+
+```text
+GET  /health
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/events
+GET  /api/events/{id}
+GET  /api/events/{eventId}/ticket-types
+```
+
+Admin endpoints:
+
+```text
+POST /api/events
+POST /api/events/{eventId}/ticket-types
+```
+
+Customer or Admin endpoints:
+
+```text
+POST /api/reservations
+GET  /api/reservations/{id}
+```
+
+## JWT Authentication
+
+JWT configuration is read from configuration or environment variables:
+
+```text
+Jwt__Issuer=ticketly-local
+Jwt__Audience=ticketly-api
+Jwt__SigningKey=local-demo-signing-key-change-for-real-use-32
+Jwt__ExpiresMinutes=60
+```
+
+The signing key shown here is for local demo use only. Use a strong secret from a secure configuration source outside source control for any real deployment.
+
+Register a user:
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Pass123$",
+  "role": "Admin"
+}
+```
+
+Supported roles:
+
+```text
+Admin
+Customer
+```
+
+Login:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Pass123$"
+}
+```
+
+Use the returned token on protected endpoints:
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Example Admin flow:
+
+```powershell
+$adminRegister = @{
+  email = "admin@example.com"
+  password = "Pass123$"
+  role = "Admin"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri http://localhost:5089/api/auth/register -ContentType "application/json" -Body $adminRegister
+
+$adminLogin = @{
+  email = "admin@example.com"
+  password = "Pass123$"
+} | ConvertTo-Json
+
+$adminToken = (Invoke-RestMethod -Method Post -Uri http://localhost:5089/api/auth/login -ContentType "application/json" -Body $adminLogin).accessToken
+
+$headers = @{ Authorization = "Bearer $adminToken" }
+
+$event = @{
+  name = "DotNet Community Day"
+  venue = "Yerevan Tech Hub"
+  startsAt = "2026-06-01T10:00:00Z"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri http://localhost:5089/api/events -Headers $headers -ContentType "application/json" -Body $event
+```
+
+Example Customer flow:
+
+```powershell
+$customerRegister = @{
+  email = "customer@example.com"
+  password = "Pass123$"
+  role = "Customer"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri http://localhost:5089/api/auth/register -ContentType "application/json" -Body $customerRegister
+
+$customerLogin = @{
+  email = "customer@example.com"
+  password = "Pass123$"
+} | ConvertTo-Json
+
+$customerToken = (Invoke-RestMethod -Method Post -Uri http://localhost:5089/api/auth/login -ContentType "application/json" -Body $customerLogin).accessToken
+
+$headers = @{ Authorization = "Bearer $customerToken" }
+
+$reservation = @{
+  ticketTypeId = "00000000-0000-0000-0000-000000000000"
+  quantity = 2
+  customerEmail = "customer@example.com"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri http://localhost:5089/api/reservations -Headers $headers -ContentType "application/json" -Body $reservation
+```
+
 Example create event request:
 
 ```http
 POST /api/events
+Authorization: Bearer ADMIN_ACCESS_TOKEN
 Content-Type: application/json
 
 {
@@ -214,6 +357,7 @@ Example create ticket type request:
 
 ```http
 POST /api/events/{eventId}/ticket-types
+Authorization: Bearer ADMIN_ACCESS_TOKEN
 Content-Type: application/json
 
 {
@@ -228,6 +372,7 @@ Example create reservation request:
 
 ```http
 POST /api/reservations
+Authorization: Bearer CUSTOMER_OR_ADMIN_ACCESS_TOKEN
 Content-Type: application/json
 
 {
@@ -245,8 +390,8 @@ The PostgreSQL connection string is configured through environment variables:
 ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=ticketly;Username=ticketly;Password=ticketly
 ```
 
-Docker Compose uses local demo credentials only.
+Docker Compose uses local demo credentials and JWT settings only.
 
 ## Demo Security Statement
 
-This project is a demo and intentionally does not implement authentication, authorization, payment handling, or production-grade security hardening.
+This project is a demo. It implements basic JWT authentication and role-based authorization, but intentionally does not implement payment handling, production-grade identity management, refresh tokens, account recovery, email verification, rate limiting, or production-grade security hardening.

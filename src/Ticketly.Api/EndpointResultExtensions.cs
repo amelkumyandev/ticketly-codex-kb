@@ -18,6 +18,7 @@ internal static class EndpointResultExtensions
         {
             ServiceErrorType.BadRequest => Results.BadRequest(new ErrorResponse(message)),
             ServiceErrorType.NotFound => Results.NotFound(new ErrorResponse(message)),
+            ServiceErrorType.Unauthorized => Results.Unauthorized(),
             _ => Results.Problem("An unexpected error occurred.")
         };
     }

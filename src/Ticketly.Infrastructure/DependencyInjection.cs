@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Ticketly.Application.Abstractions;
 using Ticketly.Infrastructure.Persistence;
+using Ticketly.Infrastructure.Security;
 
 namespace Ticketly.Infrastructure;
 
@@ -21,6 +22,8 @@ public static class DependencyInjection
 
         services.AddDbContext<TicketlyDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<ITicketlyRepository, TicketlyRepository>();
+        services.AddSingleton<IPasswordHashService, IdentityPasswordHashService>();
+        services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
         return services;
     }

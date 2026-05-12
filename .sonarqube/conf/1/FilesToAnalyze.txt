@@ -1,0 +1,12 @@
+﻿C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Abstractions\ITicketlyRepository.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Models\EventDto.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Models\ReservationDto.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Models\ServiceErrorType.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Models\ServiceResult.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Models\TicketTypeDto.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Services\EventService.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Services\IEventService.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Services\IReservationService.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Services\ITicketTypeService.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Services\ReservationService.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Application\Services\TicketTypeService.cs

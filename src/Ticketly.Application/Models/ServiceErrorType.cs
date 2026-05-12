@@ -4,5 +4,6 @@ public enum ServiceErrorType
 {
     None,
     BadRequest,
-    NotFound
+    NotFound,
+    Unauthorized
 }

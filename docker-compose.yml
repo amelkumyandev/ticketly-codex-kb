@@ -6,6 +6,10 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=ticketly;Username=ticketly;Password=ticketly
+      Jwt__Issuer: ticketly-local
+      Jwt__Audience: ticketly-api
+      Jwt__SigningKey: local-demo-signing-key-change-for-real-use-32
+      Jwt__ExpiresMinutes: 60
     ports:
       - "8080:8080"
     depends_on:

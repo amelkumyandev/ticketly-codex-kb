@@ -1,0 +1,7 @@
+﻿C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\DependencyInjection.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\Persistence\Migrations\20260511161541_InitialCreate.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\Persistence\Migrations\20260511161541_InitialCreate.Designer.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\Persistence\Migrations\TicketlyDbContextModelSnapshot.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\Persistence\TicketlyDbContext.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\Persistence\TicketlyDbContextFactory.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Infrastructure\Persistence\TicketlyRepository.cs

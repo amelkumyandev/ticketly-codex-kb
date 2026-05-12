@@ -17,6 +17,10 @@ The project should be compared with `ticketly-plain`.
 - [x] Event creation/listing
 - [x] Ticket type creation/listing
 - [x] Ticket reservation
+- [x] JWT authentication and authorization
+- [x] Register/login endpoints
+- [x] Password hashing
+- [x] Role-based authorization
 - [x] xUnit tests
 - [x] Test coverage
 - [x] SonarQube local analysis setup
@@ -41,9 +45,33 @@ The project should be compared with `ticketly-plain`.
 |---|---|
 | Build passed | Yes, final `dotnet build` passed with 0 warnings and 0 errors. |
 | Tests passed | Yes, final `dotnet test` passed. |
-| Number of tests | 8 business behavior tests |
-| Coverage percentage | 22.83% line coverage |
+| Number of tests | 17 total tests, including 9 auth add-on tests |
+| Coverage percentage | 36.47% line coverage |
 | Coverage report path | `TestResults/coverage.opencover.xml` |
+
+## Authentication And Authorization Result
+
+| Metric | Result |
+|---|---|
+| JWT implemented | Yes |
+| Register endpoint | Yes, `POST /api/auth/register` |
+| Login endpoint | Yes, `POST /api/auth/login` |
+| Password hashing | Yes, ASP.NET Core Identity `PasswordHasher` |
+| Role-based authorization | Yes, Admin and Customer policies |
+| Public endpoints | Health, auth, event reads, ticket type reads |
+| Admin-only endpoints | Create event, create ticket type |
+| Customer/Admin endpoints | Create reservation, get reservation |
+| Auth tests count | 9 |
+| Build result | Passed, 0 warnings, 0 errors |
+| Test result | Passed, 17 tests |
+| Coverage result | 36.47% line coverage |
+| SonarQube result if available | Not available; analysis not run because no SonarQube token was available |
+| Token tracking method | estimated local usage |
+| Input tokens | 734 for auth add-on |
+| Output tokens | 716 for auth add-on |
+| Total tokens | 1450 for auth add-on |
+| Manual fixes | Test host needed EF provider registration cleanup and a non-secret local default connection string |
+| Known limitations | Demo JWT only; no refresh tokens, account recovery, email verification, rate limiting, or production identity hardening |
 
 ## SonarQube Result
 
@@ -71,9 +99,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run-sonarqube-analysis.ps1 -T
 | Metric | Result |
 |---|---|
 | Tracking method | estimated local usage |
-| Input tokens | 1361 cumulative estimate across task sections |
-| Output tokens | 2355 cumulative estimate across task sections |
-| Total tokens | 3716 cumulative estimate across task sections |
+| Input tokens | 2094 cumulative estimate including auth add-on |
+| Output tokens | 3071 cumulative estimate including auth add-on |
+| Total tokens | 5165 cumulative estimate including auth add-on |
 | Notes | Exact billing tokens were not available in my local environment, so I used a repeatable local approximation: characters divided by four. This is not a billing measurement, but it gives a consistent comparison between the plain repository and the knowledge-base repository. |
 
 ## Manual Fixes Required
@@ -85,6 +113,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run-sonarqube-analysis.ps1 -T
 - Task 2: Retried the coverage script with process-level execution-policy bypass.
 - Task 3: Did not run SonarQube analysis because no local SonarQube token was available; exact local commands were documented.
 - Task 4: Retried token and coverage scripts with process-level execution-policy bypass.
+- Auth Add-on: Added a non-secret local default connection string so the ASP.NET Core test host can start before replacing EF with the in-memory provider.
+- Auth Add-on: Removed EF provider test registrations in the WebApplicationFactory setup so auth endpoint tests use only the in-memory provider.
 
 ## Assumptions
 
@@ -95,15 +125,27 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run-sonarqube-analysis.ps1 -T
 
 ## Known Limitations
 
-- No authentication.
-- No authorization.
 - No payments.
 - No frontend.
 - No email notifications.
 - No reservation expiration, confirmation, or cancellation.
 - No production hardening.
+- No refresh tokens.
+- No account recovery.
+- No email verification.
+- No rate limiting.
 - SonarQube metrics are unavailable until local analysis is run with a token.
 - Token count is estimated, not billing-accurate.
+
+## Auth Add-On Comparison With Plain Repository
+
+| Metric | ticketly-plain | ticketly-kb | Winner | Notes |
+|---|---:|---:|---|---|
+| Auth implementation quality | | 4 | | JWT, hashing, roles, and endpoint policies implemented |
+| Security hygiene | | 4 | | Password hashes only; demo JWT secret documented as local only |
+| Test coverage | | 17 tests / 36.47% line coverage | | Includes 9 auth tests |
+| Token burn | | 1450 auth add-on tokens | | Estimated local usage |
+| Manual fixes | | 2 auth add-on fixes | | Test host EF provider cleanup and local non-secret connection string |
 
 ## Comparison With Plain Repository
 
@@ -111,24 +153,24 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run-sonarqube-analysis.ps1 -T
 |---|---:|---:|---|---|
 | Build passed | | Yes | | Placeholder for plain repo comparison |
 | Tests passed | | Yes | | Placeholder for plain repo comparison |
-| Number of tests | | 8 | | Business behavior tests |
-| Coverage percentage | | 22.83% | | OpenCover report generated |
+| Number of tests | | 17 | | Includes 9 auth add-on tests |
+| Coverage percentage | | 36.47% | | OpenCover report generated |
 | SonarQube bugs | | Not run | | Requires local token |
 | SonarQube vulnerabilities | | Not run | | Requires local token |
 | SonarQube security hotspots | | Not run | | Requires local token |
 | SonarQube code smells | | Not run | | Requires local token |
 | Duplicated lines percentage | | Not run | | Requires local token |
-| Manual fixes required | | 7 recorded items | | Includes environment workarounds |
+| Manual fixes required | | 9 recorded items | | Includes environment workarounds and auth test-host fixes |
 | Architecture consistency | | 4 | | Layered architecture implemented |
 | API consistency | | 4 | | Required endpoints and status mapping implemented |
-| Security hygiene | | 4 | | No auth by design; avoids source-code secrets |
+| Security hygiene | | 4 | | JWT auth, password hashing, local-only demo secret documented |
 | Documentation quality | | 4 | | README and experiment files updated |
-| Input tokens | | 1361 | | Estimated local usage |
-| Output tokens | | 2355 | | Estimated local usage |
-| Total tokens | | 3716 | | Estimated local usage |
+| Input tokens | | 2094 | | Estimated local usage including auth add-on |
+| Output tokens | | 3071 | | Estimated local usage including auth add-on |
+| Total tokens | | 5165 | | Estimated local usage including auth add-on |
 
 ## Final Conclusion
 
-In this demo, the knowledge-base repository produced a complete scoped Ticketly API with layered architecture, PostgreSQL EF Core persistence, behavior tests, coverage output, local SonarQube setup, and tracking artifacts.
+In this demo, the knowledge-base repository produced a complete scoped Ticketly API with layered architecture, PostgreSQL EF Core persistence, JWT authentication, role-based authorization, behavior tests, coverage output, local SonarQube setup, and tracking artifacts.
 
 The result suggests that the extra context helped keep the implementation aligned with architecture, QA, security, documentation, and experiment-tracking expectations. The tradeoff is higher context and process overhead, which is captured through estimated local token tracking.

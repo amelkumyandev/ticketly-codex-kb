@@ -1,14 +1,39 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Ticketly.Api;
 using Ticketly.Api.Contracts;
 using Ticketly.Application.Services;
+using Ticketly.Domain.Entities;
 using Ticketly.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = GetRequiredConfigurationValue(builder.Configuration, "Jwt:Issuer"),
+            ValidAudience = GetRequiredConfigurationValue(builder.Configuration, "Jwt:Audience"),
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(GetRequiredConfigurationValue(builder.Configuration, "Jwt:SigningKey")))
+        };
+    });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole(UserRoles.Admin));
+    options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole(UserRoles.Customer, UserRoles.Admin));
+});
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<ITicketTypeService, TicketTypeService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -18,8 +43,38 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapGet("/health", () => Results.Ok(new HealthResponse("Healthy")))
     .WithName("GetHealth");
+
+app.MapPost(
+        "/api/auth/register",
+        async (RegisterRequest request, IAuthService authService, CancellationToken cancellationToken) =>
+        {
+            var result = await authService.RegisterAsync(
+                request.Email,
+                request.Password,
+                request.Role,
+                cancellationToken);
+
+            return result.ToEndpointResult(user => Results.Created($"/api/users/{user.Id}", user));
+        })
+    .WithName("Register");
+
+app.MapPost(
+        "/api/auth/login",
+        async (LoginRequest request, IAuthService authService, CancellationToken cancellationToken) =>
+        {
+            var result = await authService.LoginAsync(
+                request.Email,
+                request.Password,
+                cancellationToken);
+
+            return result.ToEndpointResult(Results.Ok);
+        })
+    .WithName("Login");
 
 app.MapPost(
         "/api/events",
@@ -34,7 +89,8 @@ app.MapPost(
             return result.ToEndpointResult(createdEvent =>
                 Results.Created($"/api/events/{createdEvent.Id}", createdEvent));
         })
-    .WithName("CreateEvent");
+    .WithName("CreateEvent")
+    .RequireAuthorization("AdminOnly");
 
 app.MapGet(
         "/api/events",
@@ -73,7 +129,8 @@ app.MapPost(
             return result.ToEndpointResult(ticketType =>
                 Results.Created($"/api/events/{eventId}/ticket-types", ticketType));
         })
-    .WithName("CreateTicketType");
+    .WithName("CreateTicketType")
+    .RequireAuthorization("AdminOnly");
 
 app.MapGet(
         "/api/events/{eventId:guid}/ticket-types",
@@ -100,7 +157,8 @@ app.MapPost(
             return result.ToEndpointResult(reservation =>
                 Results.Created($"/api/reservations/{reservation.Id}", reservation));
         })
-    .WithName("CreateReservation");
+    .WithName("CreateReservation")
+    .RequireAuthorization("CustomerOrAdmin");
 
 app.MapGet(
         "/api/reservations/{id:guid}",
@@ -109,8 +167,23 @@ app.MapGet(
             var result = await reservationService.GetByIdAsync(id, cancellationToken);
             return result.ToEndpointResult(Results.Ok);
         })
-    .WithName("GetReservationById");
+    .WithName("GetReservationById")
+    .RequireAuthorization("CustomerOrAdmin");
 
 app.Run();
 
+static string GetRequiredConfigurationValue(IConfiguration configuration, string key)
+{
+    var value = configuration[key];
+
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        throw new InvalidOperationException($"Configuration value '{key}' is required.");
+    }
+
+    return value;
+}
+
 internal sealed record HealthResponse(string Status);
+
+public partial class Program;

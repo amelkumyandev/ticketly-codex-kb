@@ -1,0 +1,3 @@
+﻿C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Domain\Entities\Event.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Domain\Entities\Reservation.cs
+C:\Users\amelkumyan\Desktop\ticketly-codex-kb\src\Ticketly.Domain\Entities\TicketType.cs

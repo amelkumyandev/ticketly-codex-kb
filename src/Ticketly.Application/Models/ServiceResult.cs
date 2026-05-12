@@ -31,4 +31,9 @@ public sealed class ServiceResult<T>
     {
         return new ServiceResult<T>(default, ServiceErrorType.NotFound, message);
     }
+
+    public static ServiceResult<T> Unauthorized(string message)
+    {
+        return new ServiceResult<T>(default, ServiceErrorType.Unauthorized, message);
+    }
 }

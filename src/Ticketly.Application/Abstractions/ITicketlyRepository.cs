@@ -22,5 +22,11 @@ public interface ITicketlyRepository
 
     Task<Reservation?> GetReservationByIdAsync(Guid id, CancellationToken cancellationToken);
 
+    Task AddUserAsync(ApplicationUser user, CancellationToken cancellationToken);
+
+    Task<ApplicationUser?> GetUserByEmailAsync(string email, CancellationToken cancellationToken);
+
+    Task<bool> UserEmailExistsAsync(string email, CancellationToken cancellationToken);
+
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }
